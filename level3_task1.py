@@ -1,3 +1,4 @@
+#usin BeautifulSoup
 import requests
 from bs4 import BeautifulSoup
 url='https://thehackernews.com/'
@@ -9,7 +10,7 @@ for article in articles:
     url=article.get('href')
     print(f"Title:{title},URL:{url}")
 
-
+#using scrapy
 import scrapy
 class NewsSpider(scrapy.Spider):
     name="News"
