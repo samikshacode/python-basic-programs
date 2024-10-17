@@ -1,0 +1,53 @@
+import numpy as np
+import pandas as pd
+from sklearn.metrics.pairwise import cosine_similarity
+
+# Sample student-course matrix (1: enrolled, 0: not enrolled)
+data = {'Student1': [1, 0, 1, 0, 0],
+        'Student2': [1, 1, 0, 1, 0],
+        'Student3': [0, 1, 0, 1, 1],
+        'Student4': [0, 0, 1, 0, 1],
+        'Student5': [1, 0, 0, 0, 0]}
+
+# Creating a DataFrame
+df = pd.DataFrame(data, index=['Course1', 'Course2', 'Course3', 'Course4', 'Course5'])
+
+print("Student-Course Matrix:")
+print(df)
+
+# Step 1: Calculate the similarity between students using cosine similarity
+similarity_matrix = cosine_similarity(df.T)
+
+# Convert the result into a DataFrame for easier interpretation
+student_similarity_df = pd.DataFrame(similarity_matrix, index=df.columns, columns=df.columns)
+
+print("\nStudent Similarity Matrix:")
+print(student_similarity_df)
+
+# Step 2: Make a recommendation for a specific student based on similar students' course enrollments
+# Let's say we want to make recommendations for Student1
+
+def recommend_courses(student, df, similarity_matrix, top_n=2):
+    # Get the similarity scores for the given student
+    student_idx = df.columns.get_loc(student)
+    similar_students = similarity_matrix[student_idx]
+    
+    # Multiply the similarity scores by the student-course matrix
+    # Similar students will have more influence on the recommendation
+    weighted_scores = np.dot(similar_students, df.T)
+    
+    # Convert weighted scores into a Series, label with courses
+    scores = pd.Series(weighted_scores, index=df.index)
+    
+    # Remove courses the student has already enrolled in
+    already_enrolled = df[student] > 0
+    scores = scores[~already_enrolled]
+    
+    # Sort courses by the weighted score and recommend top_n courses
+    return scores.sort_values(ascending=False).head(top_n)
+
+# Recommend courses for Student1
+recommended_courses = recommend_courses('Student1', df, similarity_matrix)
+
+print("\nRecommended Courses for Student1:")
+print(recommended_courses)
